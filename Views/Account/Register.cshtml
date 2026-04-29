@@ -1,0 +1,238 @@
+﻿@model onlineShop.DTOs.ClientRegisterDto
+@{
+    ViewData["Title"] = "Inscription";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-plus fa-4x text-primary"></i>
+                            <h2 class="mt-3">Créer un compte</h2>
+                            <p class="text-muted">Rejoignez notre communauté</p>
+                        </div>
+
+                        <form asp-action="Register" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Nom" class="form-label">Nom *</label>
+                                    <input asp-for="Nom" class="form-control" />
+                                    <span asp-validation-for="Nom" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Prenom" class="form-label">Prénom *</label>
+                                    <input asp-for="Prenom" class="form-control" />
+                                    <span asp-validation-for="Prenom" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email *
+                                </label>
+                                <input asp-for="Email" class="form-control" placeholder="votre@email.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Telephone" class="form-label">
+                                    <i class="fas fa-phone"></i> Téléphone
+                                </label>
+                                <input asp-for="Telephone" class="form-control" placeholder="+216 XX XXX XXX" />
+                                <span asp-validation-for="Telephone" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Adresse" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> Adresse
+                                </label>
+                                <textarea asp-for="Adresse" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="Adresse" class="text-danger"></span>
+                            </div>
+
+                            <!-- Role Selection Section -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tag"></i> Je m'inscris en tant que
+                                </label>
+                                <div class="role-selection">
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" asp-for="Role" value="client"
+                                               id="roleClientReg" autocomplete="off" checked>
+                                        <label class="btn btn-outline-primary" for="roleClientReg">
+                                            <i class="fas fa-user"></i> Client
+                                        </label>
+
+                                        <input type="radio" class="btn-check" asp-for="Role" value="admin"
+                                               id="roleAdminReg" autocomplete="off">
+                                        <label class="btn btn-outline-danger" for="roleAdminReg">
+                                            <i class="fas fa-user-shield"></i> Administrateur
+                                        </label>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle"></i>
+                                    Pour les comptes administrateur, un code de vérification supplémentaire sera requis.
+                                </small>
+                            </div>
+
+                            <!-- Admin Secret Code (Hidden by default) -->
+                            <div id="adminSecretCodeSection" class="mb-3" style="display: none;">
+                                <label asp-for="AdminSecretCode" class="form-label">
+                                    <i class="fas fa-key"></i> Code d'administration *
+                                </label>
+                                <input asp-for="AdminSecretCode" type="password" class="form-control"
+                                       placeholder="Entrez le code secret" />
+                                <span asp-validation-for="AdminSecretCode" class="text-danger"></span>
+                                <small class="text-muted">
+                                    Code requis pour créer un compte administrateur
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="MotPasse" class="form-label">
+                                    <i class="fas fa-lock"></i> Mot de passe *
+                                </label>
+                                <input asp-for="MotPasse" type="password" class="form-control" />
+                                <span asp-validation-for="MotPasse" class="text-danger"></span>
+                                <small class="text-muted">Minimum 6 caractères</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ConfirmMotPasse" class="form-label">
+                                    <i class="fas fa-lock"></i> Confirmer le mot de passe *
+                                </label>
+                                <input asp-for="ConfirmMotPasse" type="password" class="form-control" />
+                                <span asp-validation-for="ConfirmMotPasse" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-user-check"></i> S'inscrire
+                                </button>
+                            </div>
+
+                            <div class="text-center">
+                                <p class="mb-0">Vous avez déjà un compte ?</p>
+                                <a asp-action="Login" class="text-decoration-none">
+                                    Se connecter <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleClientRadio = document.getElementById('roleClientReg');
+            const roleAdminRadio = document.getElementById('roleAdminReg');
+            const adminSecretCodeSection = document.getElementById('adminSecretCodeSection');
+
+            // Function to toggle admin secret code field
+            function toggleAdminSecretCode() {
+                if (roleAdminRadio.checked) {
+                    adminSecretCodeSection.style.display = 'block';
+                    // Add required attribute
+                    const adminCodeInput = document.querySelector('[name="AdminSecretCode"]');
+                    adminCodeInput.required = true;
+                } else {
+                    adminSecretCodeSection.style.display = 'none';
+                    // Remove required attribute
+                    const adminCodeInput = document.querySelector('[name="AdminSecretCode"]');
+                    adminCodeInput.required = false;
+                    adminCodeInput.value = ''; // Clear value
+                }
+            }
+
+            // Add event listeners
+            roleClientRadio.addEventListener('change', toggleAdminSecretCode);
+            roleAdminRadio.addEventListener('change', toggleAdminSecretCode);
+
+            // Initial check
+            toggleAdminSecretCode();
+
+            // Add active styling to radio buttons
+            const roleButtons = document.querySelectorAll('.btn-check');
+            roleButtons.forEach(button => {
+                button.addEventListener('change', function() {
+                    const label = document.querySelector(`label[for="${this.id}"]`);
+                    // Remove active classes from all labels
+                    document.querySelectorAll('.role-selection .btn').forEach(btn => {
+                        btn.classList.remove('active-role');
+                    });
+                    // Add active class to selected label
+                    label.classList.add('active-role');
+                });
+            });
+        });
+    </script>
+    <style>
+        /* Role selection styling */
+        .role-selection .btn-group {
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .role-selection .btn {
+            border: 1px solid #dee2e6;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+
+            .role-selection .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+
+            .role-selection .btn.active-role {
+                font-weight: bold;
+            }
+
+        .role-selection .btn-check:checked + .btn-outline-primary {
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+            color: white;
+            border-color: #0a58ca;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        }
+
+        .role-selection .btn-check:checked + .btn-outline-danger {
+            background: linear-gradient(135deg, #dc3545, #bb2d3b);
+            color: white;
+            border-color: #b02a37;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Admin secret code section animation */
+        #adminSecretCodeSection {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dc3545;
+            padding-left: 1rem;
+            background-color: rgba(220, 53, 69, 0.05);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Form validation styling */
+        .field-validation-error {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .text-muted {
+            font-size: 0.875rem;
+        }
+    </style>
+}

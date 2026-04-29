@@ -1,0 +1,368 @@
+﻿@model onlineShop.DTOs.DashBoardDto
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">
+                <i class="fas fa-tachometer-alt text-primary"></i> Dashboard Admin
+            </h2>
+            <p class="text-muted mb-0">Vue d'ensemble de votre boutique en ligne</p>
+        </div>
+        <div>
+            <span class="badge bg-success fs-6">
+                <i class="fas fa-circle"></i> Système actif
+            </span>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase">Total Clients</p>
+                            <h3 class="mb-0 fw-bold">@Model.TotalClients</h3>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10">
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-controller="Admin" asp-action="Clients" class="text-decoration-none small">
+                            Voir tous les clients <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase">Total Produits</p>
+                            <h3 class="mb-0 fw-bold">@Model.TotalProduits</h3>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10">
+                            <i class="fas fa-boxes fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <!-- FIXED: Added asp-controller -->
+                        <a asp-controller="Produits" asp-action="Index" class="text-decoration-none small">
+                            Gérer les produits <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase">Commandes</p>
+                            <h3 class="mb-0 fw-bold">@Model.TotalCommandes</h3>
+                            <span class="badge bg-warning text-dark mt-1">
+                                @Model.CommandesEnCours en cours
+                            </span>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10">
+                            <i class="fas fa-shopping-cart fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-controller="Admin" asp-action="Commandes" class="text-decoration-none small">
+                            Gérer les commandes <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small text-uppercase">Chiffre d'affaires</p>
+                            <h3 class="mb-0 fw-bold">@Model.ChiffreAffairesTotal.ToString("N2") DT</h3>
+                            <span class="text-success small">
+                                <i class="fas fa-arrow-up"></i> @Model.ChiffreAffairesMois.ToString("N2") DT ce mois
+                            </span>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10">
+                            <i class="fas fa-money-bill-wave fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Dernières Commandes -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-shopping-bag text-primary"></i> Dernières commandes
+                        </h5>
+                        <a asp-controller="Admin" asp-action="Commandes" class="btn btn-sm btn-outline-primary">
+                            Voir toutes <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.DernieresCommandes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="px-3">N° Commande</th>
+                                        <th>Client</th>
+                                        <th>Date</th>
+                                        <th>Montant TTC</th>
+                                        <th>Statut</th>
+                                        <th>Facture</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var cmd in Model.DernieresCommandes)
+                                    {
+                                        <tr>
+                                            <td class="px-3 fw-semibold">#@cmd.Idcmd</td>
+                                            <td>@cmd.NomClient</td>
+                                            <td>@cmd.DateCmd.ToString("dd/MM/yyyy")</td>
+                                            <td class="fw-bold text-primary">@cmd.TotalTTC?.ToString("F2") DT</td>
+                                            <td>
+                                                @{
+                                                    var badgeClass = cmd.Statut switch
+                                                    {
+                                                        "validée" or "payée" or "livrée" => "success",
+                                                        "en cours" or "en attente" => "warning",
+                                                        "annulée" => "danger",
+                                                        _ => "secondary"
+                                                    };
+                                                }
+                                                <span class="badge bg-@badgeClass">@cmd.Statut</span>
+                                            </td>
+                                            <td>
+                                                @if (cmd.AFacture)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check"></i> Facturée
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-times"></i> Non facturée
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        onclick="viewCommandeDetails(@cmd.Idcmd)"
+                                                        title="Voir détails">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucune commande récente</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Rapides & Produits Stock Faible -->
+        <div class="col-lg-4">
+            <!-- Actions Rapides -->
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-bolt text-warning"></i> Actions rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <!-- Correct: Points to ProduitsController.Create -->
+                        <a asp-controller="Produits" asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Ajouter un produit
+                        </a>
+
+                        <!-- Points to AdminController actions -->
+                        <a asp-controller="Admin" asp-action="CreateFacture" class="btn btn-success">
+                            <i class="fas fa-file-invoice"></i> Créer une facture
+                        </a>
+                        <a asp-controller="Admin" asp-action="GestionStock" class="btn btn-warning text-dark">
+                            <i class="fas fa-warehouse"></i> Gérer le stock
+                        </a>
+                        <a asp-controller="Admin" asp-action="Clients" class="btn btn-info text-white">
+                            <i class="fas fa-users"></i> Voir les clients
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produits en stock faible -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-exclamation-triangle text-danger"></i> Stock faible
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.ProduitsPlusVendus.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var produit in Model.ProduitsPlusVendus.Take(5))
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">@produit.Design</h6>
+                                            <small class="text-muted">Réf: @produit.Aref</small>
+                                        </div>
+                                        <span class="badge bg-danger">
+                                            @produit.QteStock unités
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a asp-controller="Admin" asp-action="GestionStock" class="btn btn-sm btn-outline-primary w-100">
+                                Gérer le stock complet
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="text-muted mb-0">Tous les stocks sont OK</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour détails de commande -->
+<div class="modal fade" id="commandeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-shopping-bag"></i> Détails de la commande
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="commandeDetailsContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewCommandeDetails(idCmd) {
+            $('#commandeModal').modal('show');
+            $('#commandeDetailsContent').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
+
+            $.ajax({
+                url: '@Url.Action("GetCommandeDetails", "Admin")/' + idCmd,
+                type: 'GET',
+                success: function(data) {
+                    let html = '<table class="table table-striped"><thead><tr>' +
+                               '<th>Produit</th><th>Qté</th><th>Prix Unit.</th><th>TVA</th><th>Total</th></tr></thead><tbody>';
+
+                    data.lignes.forEach(ligne => {
+                        html += `<tr>
+                                    <td>${ligne.nomProduit}</td>
+                                    <td>${ligne.qte}</td>
+                                    <td>${ligne.prixuni.toFixed(3)} DT</td>
+                                    <td>${ligne.tva}%</td>
+                                    <td class="fw-bold">${ligne.prixtotal.toFixed(3)} DT</td>
+                                 </tr>`;
+                    });
+
+                    html += '</tbody></table>';
+                    html += '<div class="row mt-3">';
+                    html += '<div class="col-md-4 offset-md-8">';
+                    html += '<table class="table">';
+                    html += `<tr><td>Total HT:</td><td class="fw-bold">${data.totalHT.toFixed(3)} DT</td></tr>`;
+                    html += `<tr><td>Total TVA:</td><td class="fw-bold">${data.totalTVA.toFixed(3)} DT</td></tr>`;
+                    html += `<tr class="table-primary"><td>Total TTC:</td><td class="fw-bold fs-5">${data.totalTTC.toFixed(3)} DT</td></tr>`;
+                    html += '</table></div></div>';
+
+                    $('#commandeDetailsContent').html(html);
+                },
+                error: function() {
+                    $('#commandeDetailsContent').html('<div class="alert alert-danger">Erreur de chargement</div>');
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+            }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+    </style>
+}

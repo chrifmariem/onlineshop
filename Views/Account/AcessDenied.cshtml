@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Accès refusé";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white py-4 text-center">
+                    <i class="fas fa-ban fa-3x mb-3"></i>
+                    <h2 class="mb-0">Accès Refusé</h2>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="text-danger mb-3">Vous n'avez pas l'autorisation d'accéder à cette page</h4>
+                    <p class="text-muted mb-4">
+                        Cette page nécessite des privilèges spéciaux que vous ne possédez pas actuellement.
+                        Si vous pensez qu'il s'agit d'une erreur, veuillez contacter l'administrateur.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Conseil :</strong> Assurez-vous d'être connecté avec le bon compte utilisateur.
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            @if (User.IsInRole("admin"))
+                            {
+                                <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-home"></i> Retour au Dashboard
+                                </a>
+                            }
+                            else if (User.IsInRole("client"))
+                            {
+                                <a asp-controller="Client" asp-action="Profile" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-user"></i> Mon Profil
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-home"></i> Retour à l'accueil
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Se connecter
+                            </a>
+                        }
+
+                        <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Retour à la page précédente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Help Card -->
+            <div class="card mt-3 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-question-circle text-primary"></i> Besoin d'aide ?
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Vérifiez que vous êtes connecté avec le bon compte</li>
+                        <li>Certaines pages sont réservées aux administrateurs</li>
+                        <li>Contactez le support si le problème persiste</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .btn-lg {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+
+        .alert-info {
+            background-color: #cfe2ff;
+            border: 1px solid #b6d4fe;
+            color: #084298;
+        }
+    </style>
+}

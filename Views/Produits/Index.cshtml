@@ -1,0 +1,197 @@
+﻿@model onlineShop.DTOs.ProduitListDto
+@{
+    ViewData["Title"] = "Nos Produits";
+}
+
+<style>
+    .pagination {
+        margin-top: 2rem;
+    }
+
+    .page-link {
+        color: #007bff;
+        border-radius: 0.25rem;
+        margin: 0 0.25rem;
+    }
+
+    .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+    }
+</style>
+
+<section class="py-5">
+    <div class="container">
+        <!-- Success Message Display -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Error Message Display -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold">
+                    <i class="fas fa-shopping-bag text-primary"></i> Nos Produits
+                </h1>
+                <p class="text-muted">
+                    Découvrez notre gamme de produits naturels
+                    @if (Model.TotalProduits > 0)
+                    {
+                        <span class="badge bg-primary">@Model.TotalProduits produits</span>
+                    }
+                </p>
+            </div>
+            <div class="col-md-4">
+                <form asp-action="Index" method="get" class="input-group">
+                    <input type="text" name="searchTerm" class="form-control"
+                           placeholder="Rechercher un produit..." value="@Model.Recherche">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Add Button -->
+        @if (User.IsInRole("admin"))
+        {
+            <div class="mb-4">
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Ajouter un produit
+                </a>
+            </div>
+        }
+
+        <!-- Products Grid -->
+        @if (Model.Produits != null && Model.Produits.Any())
+        {
+            <div class="row g-4 mb-4">
+                @foreach (var produit in Model.Produits)
+                {
+                    <div class="col-md-4 col-lg-3">
+                        <partial name="_ProductCard" model="produit" />
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Navigation des pages">
+                    <ul class="pagination justify-content-center">
+                        <!-- Previous Button -->
+                        <li class="page-item @(Model.PageActuelle == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.PageActuelle - 1)"
+                               asp-route-searchTerm="@Model.Recherche">
+                                <i class="fas fa-chevron-left"></i> Précédent
+                            </a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        @{
+                            var startPage = Math.Max(1, Model.PageActuelle - 2);
+                            var endPage = Math.Min(Model.TotalPages, Model.PageActuelle + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="1"
+                                   asp-route-searchTerm="@Model.Recherche">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageActuelle ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-searchTerm="@Model.Recherche">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@Model.TotalPages"
+                                   asp-route-searchTerm="@Model.Recherche">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        <!-- Next Button -->
+                        <li class="page-item @(Model.PageActuelle == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.PageActuelle + 1)"
+                               asp-route-searchTerm="@Model.Recherche">
+                                Suivant <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Page Info -->
+                <div class="text-center text-muted mt-3">
+                    <small>
+                        Page @Model.PageActuelle sur @Model.TotalPages
+                        (@Model.Produits.Count sur @Model.TotalProduits produits)
+                    </small>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-3x mb-3"></i>
+                <h4>Aucun produit trouvé</h4>
+                @if (!string.IsNullOrEmpty(Model.Recherche))
+                {
+                    <p>Aucun résultat pour "<strong>@Model.Recherche</strong>"</p>
+                    <a asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-redo"></i> Voir tous les produits
+                    </a>
+                }
+                else
+                {
+                    <p>Aucun produit disponible pour le moment</p>
+                }
+            </div>
+        }
+    </div>
+</section>

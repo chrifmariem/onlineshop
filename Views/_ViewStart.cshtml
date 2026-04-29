@@ -1,0 +1,13 @@
+﻿@{
+    // Déterminer le layout en fonction du contrôleur ou du rôle
+    var controller = ViewContext.RouteData.Values["Controller"]?.ToString();
+
+    if (controller == "Admin" && User.IsInRole("admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
+}

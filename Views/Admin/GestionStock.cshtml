@@ -1,0 +1,479 @@
+﻿@using System.Collections.Generic
+@model IEnumerable<onlineShop.DTOs.ProduitDTO>
+@{
+    ViewData["Title"] = "Gestion du Stock";
+    // Convert to list for easier operations
+    var produitsList = Model?.ToList() ?? new List<onlineShop.DTOs.ProduitDTO>();
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-warehouse"></i> Gestion du Stock</h1>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au Dashboard
+        </a>
+    </div>
+
+    <!-- Messages d'alerte -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Statistiques du stock -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-boxes"></i> Total Produits</h5>
+                    <h3 class="card-text">@produitsList.Count</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle"></i> Stock Normal</h5>
+                    <h3 class="card-text">@produitsList.Count(p => p.QteStock >= 20)</h3>
+                    <small>≥20 unités</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-exclamation-triangle"></i> Stock Faible</h5>
+                    <h3 class="card-text">@produitsList.Count(p => p.QteStock > 0 && p.QteStock < 20)</h3>
+                    <small>1-19 unités</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-times-circle"></i> Rupture Stock</h5>
+                    <h3 class="card-text">@produitsList.Count(p => p.QteStock == 0)</h3>
+                    <small>0 unités</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!produitsList.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i>
+            Aucun produit trouvé dans la base de données.
+        </div>
+    }
+    else
+    {
+        <!-- Tableau TOUS les produits -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> Liste de TOUS les Produits
+                    <span class="badge bg-primary ms-2">@produitsList.Count produit(s)</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="stockTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 70px;">Image</th>
+                                <th>Produit</th>
+                                <th>Référence</th>
+                                <th style="width: 100px;" class="text-center">Stock</th>
+                                <th style="width: 120px;">Statut</th>
+                                <th style="width: 250px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var produit in produitsList.OrderBy(p => p.QteStock).ThenBy(p => p.Design))
+                            {
+                                string stockClass;
+                                string stockText;
+                                string bgClass = "";
+
+                                if (produit.QteStock == 0)
+                                {
+                                    stockClass = "danger";
+                                    stockText = "Rupture";
+                                    bgClass = "table-danger";
+                                }
+                                else if (produit.QteStock < 10)
+                                {
+                                    stockClass = "warning";
+                                    stockText = "Très faible";
+                                    bgClass = "table-warning";
+                                }
+                                else if (produit.QteStock < 20)
+                                {
+                                    stockClass = "info";
+                                    stockText = "Faible";
+                                    bgClass = "table-info";
+                                }
+                                else
+                                {
+                                    stockClass = "success";
+                                    stockText = "Normal";
+                                    bgClass = "table-success";
+                                }
+
+                                <tr class="@bgClass" data-product-id="@produit.Idproduit">
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(produit.Image))
+                                        {
+                                            <img src="@produit.Image"
+                                                 alt="@produit.Design"
+                                                 class="product-thumbnail"
+                                                 onerror="this.src='/images/default-product.png'">
+                                        }
+                                        else
+                                        {
+                                            <div class="product-thumbnail-placeholder">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@produit.Design</div>
+                                        @if (!string.IsNullOrEmpty(produit.Labo))
+                                        {
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-flask"></i> @produit.Labo
+                                            </small>
+                                        }
+                                        @if (produit.APromotion && produit.PromoWeb > 0)
+                                        {
+                                            <span class="badge bg-danger mt-1">
+                                                <i class="fas fa-tag"></i> -@produit.PromoWeb%
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <code class="bg-light px-2 py-1 rounded">
+                                            @produit.Aref?.Trim()
+                                        </code>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@stockClass fs-6 py-2 px-3">
+                                            @produit.QteStock
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-circle text-@stockClass me-2 fa-xs"></i>
+                                            <span class="fw-medium">@stockText</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <form asp-action="UpdateStock"
+                                              method="post"
+                                              class="update-form"
+                                              data-product-name="@produit.Design">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="idProduit" value="@produit.Idproduit" />
+
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <div class="input-group input-group-sm" style="max-width: 150px;">
+                                                    <button type="button"
+                                                            class="btn btn-outline-secondary btn-decrement"
+                                                            title="Diminuer">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                    <input type="number"
+                                                           name="nouvelleQuantite"
+                                                           value="@produit.QteStock"
+                                                           min="0"
+                                                           step="1"
+                                                           class="form-control text-center stock-input"
+                                                           data-original="@produit.QteStock"
+                                                           required>
+                                                    <button type="button"
+                                                            class="btn btn-outline-secondary btn-increment"
+                                                            title="Augmenter">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-save me-1"></i> Valider
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Information message -->
+                <div class="alert alert-info mt-3 mb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <strong>@produitsList.Count</strong> produit(s) au total
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Normal (≥20): @produitsList.Count(p => p.QteStock >= 20)
+                                </span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-exclamation"></i> Faible (10-19): @produitsList.Count(p => p.QteStock >= 10 && p.QteStock < 20)
+                                </span>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-exclamation-triangle"></i> Très faible (1-9): @produitsList.Count(p => p.QteStock > 0 && p.QteStock < 10)
+                                </span>
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times"></i> Rupture (0): @produitsList.Count(p => p.QteStock == 0)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== GESTION STOCK INITIALIZED ===');
+
+            const totalProduits = @produitsList.Count;
+            const normalStock = @produitsList.Count(p => p.QteStock >= 20);
+            const faibleStock = @produitsList.Count(p => p.QteStock >= 10 && p.QteStock < 20);
+            const tresFaibleStock = @produitsList.Count(p => p.QteStock > 0 && p.QteStock < 10);
+            const ruptureStock = @produitsList.Count(p => p.QteStock == 0);
+
+            console.log('Nombre total de produits:', totalProduits);
+            console.log('Produits avec stock NORMAL (≥20):', normalStock);
+            console.log('Produits avec stock FAIBLE (10-19):', faibleStock);
+            console.log('Produits avec stock TRÈS FAIBLE (1-9):', tresFaibleStock);
+            console.log('Produits en RUPTURE (0):', ruptureStock);
+
+            // Verify all products are shown
+            const rows = document.querySelectorAll('#stockTable tbody tr');
+            console.log('Lignes dans le tableau:', rows.length);
+            console.log('Devrait correspondre à:', totalProduits);
+
+            if (rows.length !== totalProduits) {
+                console.warn('ATTENTION: Le nombre de lignes ne correspond pas au total des produits!');
+            }
+
+            // Increment/Decrement buttons
+            document.querySelectorAll('.btn-increment').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('.stock-input');
+                    let value = parseInt(input.value) || 0;
+                    input.value = value + 1;
+                    highlightChanged(input);
+                });
+            });
+
+            document.querySelectorAll('.btn-decrement').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('.stock-input');
+                    let value = parseInt(input.value) || 0;
+                    if (value > 0) {
+                        input.value = value - 1;
+                        highlightChanged(input);
+                    }
+                });
+            });
+
+            // Highlight changed inputs
+            document.querySelectorAll('.stock-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    highlightChanged(this);
+                });
+            });
+
+            function highlightChanged(input) {
+                const original = parseInt(input.dataset.original);
+                const current = parseInt(input.value);
+
+                if (current !== original) {
+                    input.classList.add('changed');
+                } else {
+                    input.classList.remove('changed');
+                }
+            }
+
+            // Form submission confirmation
+            document.querySelectorAll('.update-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const input = this.querySelector('.stock-input');
+                    const newStock = parseInt(input.value);
+                    const oldStock = parseInt(input.dataset.original);
+
+                    if (newStock !== oldStock) {
+                        const produitName = this.dataset.productName;
+
+                        if (!confirm(`Confirmer la modification du stock ?\n\nProduit: ${produitName}\nAncien stock: ${oldStock}\nNouvel stock: ${newStock}`)) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    } else {
+                        e.preventDefault();
+                        alert('Aucune modification détectée.');
+                        return false;
+                    }
+                });
+            });
+
+            // Auto-dismiss alerts
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert-dismissible');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
+
+    <style>
+        /* Product thumbnail styles */
+        .product-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .product-thumbnail-placeholder {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        /* Table row background colors */
+        .table-success {
+            background-color: rgba(25, 135, 84, 0.08) !important;
+        }
+
+        .table-info {
+            background-color: rgba(13, 202, 240, 0.08) !important;
+        }
+
+        .table-warning {
+            background-color: rgba(255, 193, 7, 0.08) !important;
+        }
+
+        .table-danger {
+            background-color: rgba(220, 53, 69, 0.08) !important;
+        }
+
+            .table-success:hover,
+            .table-info:hover,
+            .table-warning:hover,
+            .table-danger:hover {
+                background-color: rgba(0, 0, 0, 0.03) !important;
+            }
+
+        /* Badge styles */
+        .badge {
+            font-weight: 500;
+        }
+
+            .badge.bg-success {
+                background-color: #198754 !important;
+            }
+
+            .badge.bg-info {
+                background-color: #0dcaf0 !important;
+            }
+
+            .badge.bg-warning {
+                background-color: #ffc107 !important;
+                color: #000 !important;
+            }
+
+            .badge.bg-danger {
+                background-color: #dc3545 !important;
+            }
+
+        /* Input group styles */
+        .input-group-sm .stock-input {
+            border-left: 0;
+            border-right: 0;
+            font-weight: 600;
+        }
+
+        .stock-input.changed {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .input-group-sm button {
+            border-color: #ced4da;
+        }
+
+            .input-group-sm button:hover {
+                background-color: #e9ecef;
+            }
+
+        /* Code styling */
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Table header */
+        thead th {
+            font-weight: 600;
+            background-color: #f8f9fa !important;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Card header */
+        .card-header {
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            th:nth-child(3),
+            td:nth-child(3) {
+                display: none;
+            }
+
+            .btn-primary {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                font-size: 0.875rem;
+                padding: 0.5rem !important;
+            }
+        }
+    </style>
+}

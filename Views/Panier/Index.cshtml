@@ -1,0 +1,134 @@
+﻿@model onlineShop.DTOs.PanierDto
+@{
+    ViewData["Title"] = "Mon Panier";
+}
+
+<section class="py-5">
+    <div class="container">
+        <h1 class="mb-4"><i class="fas fa-shopping-cart"></i> Mon Panier</h1>
+
+        @if (Model.Items != null && Model.Items.Any())
+        {
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="row align-items-center mb-3 pb-3 border-bottom">
+                                    <div class="col-md-2">
+                                        <img src="@item.ImageUrl" alt="@item.NomProduit"
+                                             class="img-fluid rounded"
+                                             onerror="this.src='/images/default-product.png'">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h5>@item.NomProduit</h5>
+                                        <p class="text-muted small mb-0">Prix unitaire: @item.Prix.ToString("F2") DT</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <form asp-action="ModifierQuantite" method="post" class="d-inline">
+                                            <input type="hidden" name="produitId" value="@item.ProduitId" />
+                                            <div class="input-group">
+                                                <button type="submit" name="quantite" value="@(item.Quantite - 1)"
+                                                        class="btn btn-outline-secondary btn-sm">
+                                                    -
+                                                </button>
+                                                <input type="number" name="quantite" value="@item.Quantite"
+                                                       min="1" max="@item.QteDisponible"
+                                                       class="form-control text-center" style="max-width: 60px;"
+                                                       onchange="this.form.submit()">
+                                                <button type="submit" name="quantite" value="@(item.Quantite + 1)"
+                                                        class="btn btn-outline-secondary btn-sm">
+                                                    +
+                                                </button>
+                                            </div>
+                                        </form>
+                                        @if (!string.IsNullOrEmpty(item.AlerteStock))
+                                        {
+                                            <small class="text-warning">@item.AlerteStock</small>
+                                        }
+                                    </div>
+                                    <div class="col-md-2">
+                                        <p class="fw-bold mb-0">@item.SousTotal.ToString("F2") DT</p>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <form asp-action="Supprimer" method="post">
+                                            <input type="hidden" name="produitId" value="@item.ProduitId" />
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between mt-3">
+                                <a asp-controller="Produits" asp-action="Index" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left"></i> Continuer mes achats
+                                </a>
+                                <form asp-action="Vider" method="post">
+                                    <button type="submit" class="btn btn-outline-danger"
+                                            onclick="return confirm('Vider le panier ?')">
+                                        <i class="fas fa-trash-alt"></i> Vider le panier
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow sticky-top" style="top: 20px;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-receipt"></i> Récapitulatif</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total HT:</span>
+                                <span>@Model.TotalHT.ToString("F2") DT</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>TVA:</span>
+                                <span>@Model.TotalTVA.ToString("F2") DT</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total TTC:</strong>
+                                <strong class="text-primary fs-4">@Model.TotalTTC.ToString("F2") DT</strong>
+                            </div>
+
+                            <div class="alert alert-info small mb-3">
+                                <i class="fas fa-truck"></i>
+                                @if (Model.TotalTTC >= 50)
+                                {
+                                    <span class="text-success fw-bold">Livraison GRATUITE !</span>
+                                }
+                                else
+                                {
+                                    <span>Livraison gratuite dès 50 DT</span>
+                                }
+                            </div>
+
+                            <div class="d-grid">
+                                <a asp-controller="Commande" asp-action="Checkout" class="btn btn-success btn-lg">
+                                    <i class="fas fa-lock"></i> Passer commande
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
+                <h3>Votre panier est vide</h3>
+                <p class="text-muted mb-4">Découvrez nos produits et ajoutez-les à votre panier</p>
+                <a asp-controller="Produits" asp-action="Index" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag"></i> Voir nos produits
+                </a>
+            </div>
+        }
+    </div>
+</section>

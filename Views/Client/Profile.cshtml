@@ -1,0 +1,185 @@
+﻿@model onlineShop.DTOs.ClientDashBoardDto
+@{
+    ViewData["Title"] = "Mon Profil";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- ================= WELCOME SECTION ================= -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-4">
+                            <i class="fas fa-user-circle fa-5x"></i>
+                        </div>
+
+                        <div>
+                            <h2 class="mb-1">
+                                Bienvenue, @Model.Client.Prenom @Model.Client.Nom !
+                            </h2>
+                            <p class="mb-1 opacity-75">
+                                <i class="fas fa-envelope"></i> @Model.Client.Email
+                            </p>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-calendar-alt"></i>
+                                Membre depuis le @Model.Client.DateInscrip.ToString("dd MMMM yyyy")
+                            </p>
+                        </div>
+
+                        <div class="ms-auto">
+                            <a asp-controller="Client" asp-action="EditProfile" class="btn btn-light btn-lg">
+                                <i class="fas fa-edit"></i> Modifier mon profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= STATISTICS ================= -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                    <h3 class="fw-bold">@Model.NombreCommandes</h3>
+                    <p class="text-muted">Commandes passées</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-money-bill-wave fa-2x text-success mb-2"></i>
+                    <h3 class="fw-bold">@Model.MontantTotalAchats.ToString("F2") DT</h3>
+                    <p class="text-muted">Total des achats</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-circle fa-2x text-warning mb-2"></i>
+                    <h3 class="fw-bold">@Model.ReclamationsEnCours.Count()</h3>
+                    <p class="text-muted">Réclamations en cours</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ================= PROFILE INFO ================= -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-user text-primary"></i> Informations personnelles
+                </div>
+                <div class="card-body">
+                    <p><strong>Nom :</strong> @Model.Client.Prenom @Model.Client.Nom</p>
+                    <p><strong>Email :</strong> @Model.Client.Email</p>
+                    <p><strong>Téléphone :</strong> @Model.Client.Telephone</p>
+                    <p><strong>Adresse :</strong> @Model.Client.Adresse</p>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-controller="Client" asp-action="EditProfile" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Modifier mes informations
+                        </a>
+
+                        <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-outline-secondary">
+                            <i class="fas fa-key"></i> Changer mon mot de passe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LAST ORDERS ================= -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-shopping-bag text-primary"></i> Mes dernières commandes
+                    </h5>
+
+                    <!-- ✅ UPDATED LINK -->
+                    <a asp-controller="Client" asp-action="MesCommandes"
+                       class="btn btn-sm btn-outline-primary">
+                        Voir mes commandes
+                    </a>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (Model.DernieresCommandes.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cmd in Model.DernieresCommandes)
+                                {
+                                    <tr>
+                                        <td>#@cmd.Idcmd</td>
+                                        <td>@cmd.DateCmd.ToString("dd/MM/yyyy")</td>
+                                        <td class="fw-bold text-primary">
+                                            @cmd.TotalTTC?.ToString("F2") DT
+                                        </td>
+                                        <td>
+                                            @{
+                                                var badge = cmd.Statut switch
+                                                {
+                                                    "validée" or "payée" or "livrée" => "success",
+                                                    "en cours" or "en attente" => "warning",
+                                                    "annulée" => "danger",
+                                                    _ => "secondary"
+                                                };
+                                            }
+                                            <span class="badge bg-@badge">@cmd.Statut</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucune commande pour le moment</p>
+                            <a asp-controller="Produits" asp-action="Index" class="btn btn-primary">
+                                Découvrir nos produits
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform .3s;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+</style>

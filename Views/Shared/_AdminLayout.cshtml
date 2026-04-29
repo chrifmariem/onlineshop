@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark border-end" id="sidebar-wrapper">
+            <div class="sidebar-heading bg-primary text-white py-3 text-center">
+                <i class="fas fa-store"></i>
+                <strong>ADMIN PANEL</strong>
+            </div>
+            <div class="list-group list-group-flush">
+                <!-- Admin Navigation -->
+                @if (User.IsInRole("admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Dashboard"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+
+                    <a asp-controller="Admin" asp-action="Clients"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "Clients" ? "active" : "")">
+                        <i class="fas fa-users me-2"></i> Clients
+                    </a>
+
+                    <!-- LIEN PRODUITS MODIFIÉ : Maintenant pointe vers Produits/Index -->
+                    <a asp-controller="Produits" asp-action="Index"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Produits" ? "active" : "")">
+                        <i class="fas fa-boxes me-2"></i> Produits
+                    </a>
+
+                    <a asp-controller="Admin" asp-action="Commandes"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "Commandes" ? "active" : "")">
+                        <i class="fas fa-shopping-cart me-2"></i> Commandes
+                    </a>
+
+                    <a asp-controller="Admin" asp-action="CreateFacture"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "CreateFacture" ? "active" : "")">
+                        <i class="fas fa-file-invoice me-2"></i> Créer Facture
+                    </a>
+
+                    <a asp-controller="Admin" asp-action="Factures"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "Factures" ? "active" : "")">
+                        <i class="fas fa-receipt me-2"></i> Factures
+                    </a>
+
+                    <a asp-controller="Admin" asp-action="GestionStock"
+                       class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "GestionStock" ? "active" : "")">
+                        <i class="fas fa-warehouse me-2"></i> Gestion Stock
+                    </a>
+
+                    <div class="dropdown-divider bg-secondary"></div>
+                }
+
+                <!-- Common Links for All Users -->
+                <a asp-controller="Account" asp-action="ChangePassword"
+                   class="list-group-item list-group-item-action bg-dark text-white @(ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
+                    <i class="fas fa-key me-2"></i> Changer mot de passe
+                </a>
+
+                <a href="javascript:void(0);" onclick="document.getElementById('logoutForm').submit();"
+                   class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="navbar-nav ms-auto align-items-center">
+                        <!-- Client Dropdown Menu (only shows for client users) -->
+                        @if (User.IsInRole("client"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user"></i> Mon Compte
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Client" asp-action="Profile">
+                                            <i class="fas fa-user-circle"></i> Mon Profil
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Client" asp-action="MesCommandes">
+                                            <i class="fas fa-box"></i> Mes Commandes
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                                            <i class="fas fa-key"></i> Changer mot de passe
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else if (User.IsInRole("admin"))
+                        {
+                            <!-- Admin User Info -->
+                            <span class="me-3">
+                                <i class="fas fa-user-circle"></i>
+                                <strong>@User.Identity.Name</strong>
+                            </span>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Voir le site
+                            </a>
+                        }
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Messages de notification -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="container-fluid mt-3">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="container-fluid mt-3">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            }
+
+            <!-- Main Content -->
+            <div class="container-fluid">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Logout Form -->
+    <form id="logoutForm" asp-controller="Account" asp-action="Logout" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle sidebar
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('wrapper').classList.toggle('toggled');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

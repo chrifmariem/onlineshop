@@ -1,0 +1,419 @@
+﻿@model onlineShop.DTOs.UpdateProduitDto
+@{
+    ViewData["Title"] = "Modifier le produit";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Produits" asp-action="Index">Produits</a></li>
+            <li class="breadcrumb-item active">Modifier le produit</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Modifier le produit</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" asp-route-id="@ViewBag.ProduitId" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Hidden fields to send raw string values -->
+                        <input type="hidden" name="VenteHTString" id="VenteHTString" />
+                        <input type="hidden" name="TvaString" id="TvaString" />
+
+                        <!-- Informations de base -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations de base</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Design" class="form-label required">Désignation *</label>
+                                        <input asp-for="Design" class="form-control" placeholder="Nom du produit" />
+                                        <span asp-validation-for="Design" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Aref" class="form-label required">Référence *</label>
+                                        <input asp-for="Aref" class="form-control" placeholder="Ex: PROD-001" readonly />
+                                        <span asp-validation-for="Aref" class="text-danger"></span>
+                                        <small class="text-muted">La référence ne peut pas être modifiée</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Labo" class="form-label">Laboratoire</label>
+                                        <select asp-for="Labo" class="form-select">
+                                            <option value="">-- Sélectionner --</option>
+                                            <option value="Laboratoire A">Laboratoire A</option>
+                                            <option value="Laboratoire B">Laboratoire B</option>
+                                            <option value="Laboratoire C">Laboratoire C</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                        <span asp-validation-for="Labo" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Code-barres</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" value="@ViewBag.CodeBar" readonly />
+                                            <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                                        </div>
+                                        <small class="text-muted">Code-barres (non modifiable)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prix et TVA -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Prix et Taxes</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="VenteHT" class="form-label required">Prix HT *</label>
+                                        <div class="input-group">
+                                            <input asp-for="VenteHT"
+                                                   class="form-control"
+                                                   type="text"
+                                                   placeholder="Ex: 37.836" />
+                                            <span class="input-group-text">DT</span>
+                                        </div>
+                                        <span asp-validation-for="VenteHT" class="text-danger"></span>
+                                        <small class="text-muted">Utilisez le point comme séparateur décimal (ex: 53.14)</small>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="Tva" class="form-label required">TVA % *</label>
+                                        <div class="input-group">
+                                            <input asp-for="Tva"
+                                                   class="form-control"
+                                                   type="text" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="Tva" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Prix TTC (calculé)</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="ttcPreview" readonly />
+                                            <span class="input-group-text">DT</span>
+                                        </div>
+                                        <small class="text-muted">Calcul automatique: HT + (HT × TVA%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock et Promotion -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-warehouse"></i> Stock et Promotion</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="QteStock" class="form-label required">Quantité en stock *</label>
+                                        <input asp-for="QteStock" class="form-control" type="number" min="0" />
+                                        <span asp-validation-for="QteStock" class="text-danger"></span>
+                                        <small class="text-muted">Quantité actuelle en stock</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="PromoWeb" class="form-label">Promotion web (%)</label>
+                                        <div class="input-group">
+                                            <input asp-for="PromoWeb" class="form-control" type="text" min="0" max="100" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="PromoWeb" class="text-danger"></span>
+                                        <small class="text-muted">Optionnel - réduction en pourcentage</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Colisage</label>
+                                        <input type="text" class="form-control" value="@ViewBag.Coli" readonly />
+                                        <small class="text-muted">Colisage (non modifiable)</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date limite de consommation</label>
+                                        <div class="input-group">
+                                            <input type="date" class="form-control" value="@ViewBag.Dlc" readonly />
+                                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                        </div>
+                                        <small class="text-muted">DLC (non modifiable)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image du produit -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-image"></i> Image du produit</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Image actuelle</label>
+                                    <div class="text-center">
+                                        @if (!string.IsNullOrEmpty(Model.Image))
+                                        {
+                                            <img src="@Model.Image" class="img-thumbnail" style="max-height: 200px;"
+                                                 onerror="this.src='/images/default-product.png'" />
+                                            <p class="text-muted mt-2 small">@Model.Image</p>
+                                        }
+                                        else
+                                        {
+                                            <img src="/images/default-product.png" class="img-thumbnail" style="max-height: 200px;" />
+                                            <p class="text-muted mt-2 small">Image par défaut</p>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Image" class="form-label">Nouvelle URL de l'image</label>
+                                    <input asp-for="Image" class="form-control" placeholder="https://exemple.com/nouvelle-image.jpg" />
+                                    <span asp-validation-for="Image" class="text-danger"></span>
+                                    <small class="text-muted">Laissez vide pour conserver l'image actuelle</small>
+                                </div>
+
+                                <div class="text-center mb-3">
+                                    <span class="text-muted">OU</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Télécharger une nouvelle image</label>
+                                    <input type="file" id="ImageFile" class="form-control" accept="image/*" />
+                                    <small class="text-muted">Formats acceptés: JPG, PNG, GIF. Max 2MB</small>
+                                </div>
+
+                                <div id="imagePreview" class="text-center mt-3" style="display: none;">
+                                    <p class="mb-2">Aperçu nouvelle image:</p>
+                                    <img id="previewImage" class="img-thumbnail" style="max-height: 200px;" />
+                                    <p class="text-muted mt-2 small" id="imageInfo"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informations supplémentaires -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-notes-medical"></i> Informations supplémentaires</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Dernière mise à jour</label>
+                                        <input type="text" class="form-control" value="@ViewBag.DernMiseAJour" readonly />
+                                        <small class="text-muted">Date de dernière modification</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date création</label>
+                                        <input type="text" class="form-control" value="@ViewBag.DateCreation" readonly />
+                                        <small class="text-muted">Date d'ajout du produit</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-controller="Produits" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <div>
+                                <a asp-controller="Produits" asp-action="Details" asp-route-id="@ViewBag.ProduitId"
+                                   class="btn btn-info me-2">
+                                    <i class="fas fa-eye"></i> Voir détails
+                                </a>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-save"></i> Enregistrer les modifications
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Disable browser validation to use our custom validation
+        $('form').attr('novalidate', 'novalidate');
+
+        // Format decimal input - use period as decimal separator
+        function formatDecimalInput(input) {
+            let value = $(input).val().trim();
+            // Replace comma with period
+            value = value.replace(',', '.');
+            // Remove any non-numeric characters except period and minus
+            value = value.replace(/[^\d.-]/g, '');
+            // Ensure only one period
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            $(input).val(value);
+            return value;
+        }
+
+        // Calculate TTC
+        function calculateTTC() {
+            const venteHTStr = formatDecimalInput('#VenteHT');
+            const tvaStr = formatDecimalInput('#Tva');
+
+            const venteHT = parseFloat(venteHTStr) || 0;
+            const tva = parseFloat(tvaStr) || 0;
+            const ttc = venteHT + (venteHT * tva / 100);
+
+            $('#ttcPreview').val(ttc.toFixed(3));
+        }
+
+        // Auto-format on blur
+        $('#VenteHT, #Tva').on('blur', function() {
+            formatDecimalInput(this);
+            calculateTTC();
+        });
+
+        // Calculate on input
+        $('#VenteHT, #Tva').on('input', calculateTTC);
+
+        $(document).ready(function() {
+            calculateTTC();
+            console.log('Edit form initialized');
+            console.log('VenteHT:', $('#VenteHT').val());
+            console.log('Tva:', $('#Tva').val());
+        });
+
+        // Image file preview
+        $('#ImageFile').change(function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Le fichier est trop volumineux (max 2MB)');
+                    $(this).val('');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImage').attr('src', e.target.result);
+                    $('#imageInfo').text(`${file.name} (${(file.size / 1024).toFixed(0)} KB)`);
+                    $('#imagePreview').show();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#imagePreview').hide();
+            }
+        });
+
+        // Image URL preview
+        $('#Image').on('input', function() {
+            const url = $(this).val();
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                $('#previewImage').attr('src', url);
+                $('#imageInfo').text(`Image externe: ${url}`);
+                $('#imagePreview').show();
+            } else if (!url) {
+                $('#imagePreview').hide();
+            }
+        });
+
+        // Form submission validation
+        $('form').on('submit', function(e) {
+            // Format decimal fields before submission
+            const venteHTStr = formatDecimalInput('#VenteHT');
+            const tvaStr = formatDecimalInput('#Tva');
+
+            // Store raw string values in hidden fields
+            $('#VenteHTString').val(venteHTStr);
+            $('#TvaString').val(tvaStr);
+
+            const venteHT = parseFloat(venteHTStr);
+            const tva = parseFloat(tvaStr);
+
+            console.log('=== SUBMITTING EDIT FORM ===');
+            console.log('Aref:', $('#Aref').val());
+            console.log('Design:', $('#Design').val());
+            console.log('VenteHTString:', venteHTStr);
+            console.log('TvaString:', tvaStr);
+            console.log('VenteHT (parsed):', venteHT);
+            console.log('Tva (parsed):', tva);
+            console.log('QteStock:', $('#QteStock').val());
+
+            // Validation
+            if (isNaN(venteHT) || venteHT <= 0) {
+                alert('Veuillez entrer un prix HT valide (supérieur à 0)');
+                e.preventDefault();
+                return false;
+            }
+
+            if (isNaN(tva) || tva < 0 || tva > 100) {
+                alert('Veuillez entrer une TVA valide (entre 0 et 100%)');
+                e.preventDefault();
+                return false;
+            }
+
+            if (!confirm('Êtes-vous sûr de vouloir modifier ce produit ?')) {
+                e.preventDefault();
+                return false;
+            }
+
+            $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+            return true;
+        });
+    </script>
+
+    <style>
+        .required:after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .card-header.bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+}

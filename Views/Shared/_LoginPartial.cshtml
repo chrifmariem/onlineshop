@@ -1,0 +1,97 @@
+﻿@using System.Security.Claims
+
+@if (User.Identity.IsAuthenticated)
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle"></i> @User.Identity.Name
+            @if (User.IsInRole("admin"))
+            {
+                <span class="badge bg-danger ms-1">Admin</span>
+            }
+            else if (User.IsInRole("client"))
+            {
+                <span class="badge bg-primary ms-1">Client</span>
+            }
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <!-- Menu pour Admin -->
+            @if (User.IsInRole("admin"))
+            {
+                <li>
+                    <a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard Admin
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
+
+            <!-- Menu pour Client -->
+            @if (User.IsInRole("client"))
+            {
+                <li>
+                    <a class="dropdown-item" asp-controller="Client" asp-action="Profile">
+                        <i class="fas fa-user-circle"></i> Mon Profil
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Client" asp-action="MesCommandes">
+                        <i class="fas fa-box"></i> Mes Commandes
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
+
+            <!-- Pour tous les utilisateurs (Admin & Client) -->
+            <li>
+                <a class="dropdown-item @(User.IsInRole("admin") ? "text-danger" : "")"
+                   asp-controller="Account" asp-action="ChangePassword">
+                    <i class="fas fa-key"></i>
+                    @if (User.IsInRole("admin"))
+                    {
+                        <strong>Changer mot de passe Admin</strong>
+                    }
+                    else
+                    {
+                        <span>Changer mot de passe</span>
+                    }
+                </a>
+            </li>
+
+            <!-- Pour tous les utilisateurs (Admin & Client) -->
+            @if (User.IsInRole("client"))
+            {
+                <li>
+                    <a class="dropdown-item" asp-controller="Client" asp-action="Profile">
+                        <i class="fas fa-user"></i> Mon profil
+                    </a>
+                </li>
+            }
+
+            <li><hr class="dropdown-divider"></li>
+
+            <!-- Déconnexion (pour tous) -->
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="Login">
+            <i class="fas fa-sign-in-alt"></i> Connexion
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="Register">
+            <i class="fas fa-user-plus"></i> Inscription
+        </a>
+    </li>
+}

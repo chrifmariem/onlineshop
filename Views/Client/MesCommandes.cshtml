@@ -1,0 +1,53 @@
+﻿@model onlineShop.DTOs.ClientDashBoardDto
+@{
+    ViewData["Title"] = "Mes Commandes";
+}
+<section class="py-5">
+    <div class="container">
+        <h1 class="mb-4"><i class="fas fa-box"></i> Mes Commandes</h1>
+        @if (Model.DernieresCommandes != null && Model.DernieresCommandes.Any())
+        {
+            @foreach (var cmd in Model.DernieresCommandes)
+            {
+                <div class="card shadow mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Commande #@cmd.Idcmd</h5>
+                            <small class="text-muted">@cmd.DateCmd.ToString("dd MMMM yyyy à HH:mm")</small>
+                        </div>
+                        <span class="badge bg-@cmd.StatutCouleur">@cmd.Statut</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6>Articles commandés:</h6>
+                                <ul>
+                                    @foreach (var ligne in cmd.Lignes)
+                                    {
+                                        <li>@ligne.NomProduit - Quantité: @ligne.Qte - @(ligne.PrixTotal?.ToString("0.00") ?? "0.00") DT</li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <p class="mb-1"><strong>Total HT:</strong> @(cmd.TotalHT?.ToString("0.00") ?? "0.00") DT</p>
+                                <p class="mb-1"><strong>TVA:</strong> @(cmd.TotalTVA?.ToString("0.00") ?? "0.00") DT</p>
+                                <p class="mb-1 fs-5"><strong>Total TTC:</strong> <span class="text-primary">@(cmd.TotalTTC?.ToString("0.00") ?? "0.00") DT</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-3x mb-3"></i>
+                <h4>Aucune commande</h4>
+                <p>Vous n'avez pas encore passé de commande</p>
+                <a asp-controller="Produits" asp-action="Index" class="btn btn-primary">
+                    Commencer mes achats
+                </a>
+            </div>
+        }
+    </div>
+</section>

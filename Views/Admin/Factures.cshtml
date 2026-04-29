@@ -1,0 +1,223 @@
+﻿@model IEnumerable<onlineShop.DTOs.FactureDTO>
+@{
+    ViewData["Title"] = "Gestion des Factures";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Factures</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-invoice"></i> Gestion des Factures</h1>
+        <div>
+            <a asp-action="CreateFacture" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nouvelle Facture
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Aucune facture trouvée.
+            <a asp-action="CreateFacture" class="alert-link">Créer une nouvelle facture</a>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0">Liste des Factures (@Model.Count())</h5>
+                    </div>
+                    <div class="col-auto">
+                        <input type="text" id="searchFacture" class="form-control" placeholder="🔍 Rechercher...">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="facturesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Facture</th>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Montant HT</th>
+                                <th>TVA</th>
+                                <th>Montant TTC</th>
+                                <th>Statut</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var facture in Model)
+                            {
+                                <tr>
+                                    <td><strong class="text-primary">@facture.NumFac</strong></td>
+                                    <td>@facture.DateFac.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <i class="fas fa-user"></i> @facture.Commande?.NomClient
+                                    </td>
+                                    <td>@(facture.TotalHT?.ToString("0.000") ?? "0.000") DT</td>
+                                    <td>@(facture.TotalTVA?.ToString("0.000") ?? "0.000") DT</td>
+                                    <td><strong>@(facture.TotalTTC?.ToString("0.000") ?? "0.000") DT</strong></td>
+                                    <td>
+                                        @{
+                                            var badgeClass = facture.Statut?.ToLower() switch
+                                            {
+                                                "payée" => "bg-success",
+                                                "non payée" => "bg-warning text-dark",
+                                                "annulée" => "bg-danger",
+                                                "en attente" => "bg-info",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass">
+                                            @facture.Statut
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <!-- Bouton PDF -->
+                                            <a asp-controller="Admin"
+                                               asp-action="ViewFacture"
+                                               asp-route-id="@facture.Idfacture"
+                                               class="btn btn-sm btn-info"
+                                               title="Voir la facture"
+                                               target="_blank">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+
+                                            <!-- Bouton Changer statut -->
+                                            <button type="button"
+                                                    class="btn btn-sm btn-warning"
+                                                    onclick="changeStatut(@facture.Idfacture, '@facture.Statut')"
+                                                    title="Changer le statut">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <!-- Bouton Supprimer -->
+                                            <form method="post"
+                                                  asp-action="SupprimerFacture"
+                                                  asp-route-id="@facture.Idfacture"
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer la facture @facture.NumFac ?');"
+                                                  style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal pour changer le statut -->
+<div class="modal fade" id="statutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Changer le statut de la facture
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="statutForm" method="post" asp-action="UpdateStatutFacture">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="factureId" name="id" />
+                    <div class="mb-3">
+                        <label class="form-label">Nouveau statut</label>
+                        <select class="form-select" id="nouveauStatut" name="nouveauStatut" required>
+                            <option value="Non payée">Non payée</option>
+                            <option value="Payée">Payée</option>
+                            <option value="En attente">En attente</option>
+                            <option value="Annulée">Annulée</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Recherche dans le tableau
+        document.getElementById('searchFacture').addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#facturesTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchValue) ? '' : 'none';
+            });
+        });
+
+        // Changer le statut
+        function changeStatut(factureId, currentStatut) {
+            document.getElementById('factureId').value = factureId;
+            document.getElementById('nouveauStatut').value = currentStatut;
+
+            const modal = new bootstrap.Modal(document.getElementById('statutModal'));
+            modal.show();
+        }
+    </script>
+
+    <style>
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            padding: 0.5em 0.75em;
+            font-size: 0.875rem;
+        }
+
+        .btn-group {
+            gap: 0.25rem;
+        }
+
+        .breadcrumb-item a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            .breadcrumb-item a:hover {
+                text-decoration: underline;
+            }
+
+        /* Pour les boutons dans le groupe */
+        .btn-group form {
+            margin: 0;
+        }
+
+        .btn-group button {
+            border-radius: 0.25rem !important;
+        }
+    </style>
+}

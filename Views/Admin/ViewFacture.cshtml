@@ -1,0 +1,254 @@
+﻿@model onlineShop.DTOs.FactureDTO
+@{
+    ViewData["Title"] = $"Facture {Model.NumFac}";
+    Layout = null; // Clean layout for PDF / print
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .invoice-container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+        }
+
+        .invoice-header {
+            border-bottom: 3px solid #007bff;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        .company-info {
+            text-align: right;
+        }
+
+        .invoice-title {
+            font-size: 2.5rem;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .invoice-details,
+        .total-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .grand-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .status-paye {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-non-paye {
+            background: #ffc107;
+            color: black;
+        }
+
+        .status-annule {
+            background: #dc3545;
+            color: white;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Buttons -->
+    <div class="text-center mb-3 no-print">
+        <button onclick="window.print()" class="btn btn-primary btn-lg">
+            <i class="fas fa-print"></i> Imprimer / PDF
+        </button>
+        <button onclick="window.close()" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times"></i> Fermer
+        </button>
+    </div>
+
+    <div class="invoice-container">
+
+        <!-- HEADER -->
+        <div class="invoice-header">
+            <div class="row">
+                <div class="col-6">
+                    <h1 class="invoice-title">FACTURE</h1>
+                    <p class="text-muted mb-0">N° @Model.NumFac</p>
+                </div>
+
+                <div class="col-6 company-info">
+                    <h4 class="mb-1"><strong>EDI SOLUTIONS</strong></h4>
+                    <p class="mb-2 text-muted">Solutions Informatiques & Digitales</p>
+
+                    <p class="mb-1">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Route GREMDA Km 0.5<br />
+                        Immeuble ELISSA, Apart 37<br />
+                        SFAX – TUNISIA
+                    </p>
+
+                    <p class="mb-1">
+                        <i class="fas fa-globe"></i>
+                        <strong>www.edi-solutions.tn</strong>
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- CLIENT / FACTURE DETAILS -->
+        <div class="invoice-details mb-4">
+            <div class="row">
+                <div class="col-6">
+                    <h6><strong>FACTURÉ À :</strong></h6>
+                    <p class="mb-1"><strong>@Model.Commande?.NomClient</strong></p>
+                    <p class="mb-0 text-muted">Commande N° @Model.Idcmd</p>
+                    <p class="mb-0 text-muted">
+                        Date commande :
+                        @(Model.Commande?.DateCmd.ToString("dd/MM/yyyy") ?? "N/A")
+                    </p>
+                </div>
+
+                <div class="col-6 text-end">
+                    <p class="mb-1"><strong>Date facture :</strong> @Model.DateFac.ToString("dd/MM/yyyy")</p>
+                    <p class="mb-1"><strong>Échéance :</strong> @Model.DateFac.AddDays(30).ToString("dd/MM/yyyy")</p>
+
+                    @{
+                        var statusClass = Model.Statut?.ToLower() switch
+                        {
+                            "payée" or "paye" => "status-paye",
+                            "annulée" or "annule" => "status-annule",
+                            _ => "status-non-paye"
+                        };
+                    }
+
+                    <span class="status-badge @statusClass">@Model.Statut</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>DÉSIGNATION</th>
+                    <th class="text-center">QTÉ</th>
+                    <th class="text-end">PU HT</th>
+                    <th class="text-center">TVA</th>
+                    <th class="text-end">TOTAL TTC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Commande?.Lignes?.Any() == true)
+                {
+                    int i = 1;
+                    foreach (var l in Model.Commande.Lignes)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td>@l.NomProduit</td>
+                            <td class="text-center">@l.Qte</td>
+                            <td class="text-end">@l.PrixUni?.ToString("0.000") DT</td>
+                            <td class="text-center">@l.Tva?.ToString("0.00")%</td>
+                            <td class="text-end"><strong>@l.PrixTotal?.ToString("0.000") DT</strong></td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Aucun article</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- TOTALS -->
+        <div class="row mt-4">
+            <div class="col-md-6"></div>
+
+            <div class="col-md-6">
+                <div class="total-section">
+                    <div class="d-flex justify-content-between">
+                        <span>Total HT :</span>
+                        <strong>@Model.TotalHT?.ToString("0.000") DT</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Total TVA :</span>
+                        <strong>@Model.TotalTVA?.ToString("0.000") DT</strong>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <span class="grand-total">TOTAL TTC :</span>
+                        <span class="grand-total">@Model.TotalTTC?.ToString("0.000") DT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-note">
+            <p><strong>Conditions :</strong> Paiement sous 30 jours</p>
+            <p class="small text-muted">
+                Facture conforme à la législation tunisienne – Tribunaux de Sfax compétents
+            </p>
+        </div>
+
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

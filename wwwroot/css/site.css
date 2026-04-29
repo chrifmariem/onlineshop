@@ -1,0 +1,37 @@
+/* Role selection styling */
+.btn-group .btn {
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+    .btn-group .btn.active-role {
+        font-weight: bold;
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+.btn-outline-primary.active-role {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger.active-role {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.role-selection {
+    margin-bottom: 1rem;
+}
+
+/* Radio button styling */
+.btn-check:checked + .btn {
+    border-width: 2px;
+}
+/* Variables */
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #ec4899;
+    --success-color: #10b981;

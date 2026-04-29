@@ -1,0 +1,308 @@
+﻿@model onlineShop.DTOs.CreateProduitDto
+@{
+    ViewData["Title"] = "Ajouter un produit";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Produits</a></li>
+            <li class="breadcrumb-item active">Ajouter un produit</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Nouveau Produit</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Informations de base -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations de base</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Design" class="form-label required">Désignation *</label>
+                                        <input asp-for="Design" class="form-control" placeholder="Nom du produit" />
+                                        <span asp-validation-for="Design" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Aref" class="form-label required">Référence *</label>
+                                        <input asp-for="Aref" class="form-control" placeholder="Ex: PROD-001" />
+                                        <span asp-validation-for="Aref" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Labo" class="form-label">Laboratoire</label>
+                                        <select asp-for="Labo" class="form-select">
+                                            <option value="">-- Sélectionner --</option>
+                                            <option value="Laboratoire A">Laboratoire A</option>
+                                            <option value="Laboratoire B">Laboratoire B</option>
+                                            <option value="Laboratoire C">Laboratoire C</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                        <span asp-validation-for="Labo" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="CodeBar" class="form-label">Code-barres</label>
+                                        <div class="input-group">
+                                            <input asp-for="CodeBar" class="form-control" placeholder="Code-barres" />
+                                            <button type="button" class="btn btn-outline-secondary" onclick="generateBarcode()">
+                                                <i class="fas fa-barcode"></i> Générer
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="CodeBar" class="text-danger"></span>
+                                        <small class="text-muted">Optionnel - généré automatiquement si vide</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prix et TVA -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Prix et Taxes</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <!-- CHANGED: Using VenteHTString instead of VenteHT -->
+                                        <label asp-for="VenteHTString" class="form-label required">Prix HT *</label>
+                                        <div class="input-group">
+                                            <input asp-for="VenteHTString" class="form-control"
+                                                   placeholder="Ex: 37.836"
+                                                   step="any" />
+                                            <span class="input-group-text">DT</span>
+                                        </div>
+                                        <span asp-validation-for="VenteHTString" class="text-danger"></span>
+                                        
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="Tva" class="form-label required">TVA % *</label>
+                                        <div class="input-group">
+                                            <input asp-for="Tva" class="form-control" value="19" step="0.01" min="0" max="100" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="Tva" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Prix TTC (calculé)</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="ttcPreview" readonly />
+                                            <span class="input-group-text">DT</span>
+                                        </div>
+                                        <small class="text-muted">Calcul automatique: HT + (HT × TVA%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock et Promotion -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-warehouse"></i> Stock et Promotion</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="QteStock" class="form-label required">Quantité en stock *</label>
+                                        <input asp-for="QteStock" class="form-control" min="0" value="0" />
+                                        <span asp-validation-for="QteStock" class="text-danger"></span>
+                                        <small class="text-muted">Quantité initiale en stock</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="PromoWeb" class="form-label">Promotion web (%)</label>
+                                        <div class="input-group">
+                                            <input asp-for="PromoWeb" class="form-control" min="0" max="100" value="0" />
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <span asp-validation-for="PromoWeb" class="text-danger"></span>
+                                        <small class="text-muted">Optionnel - réduction en pourcentage</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Coli" class="form-label">Colisage</label>
+                                        <input asp-for="Coli" class="form-control" placeholder="Ex: 12 unités/colis" />
+                                        <span asp-validation-for="Coli" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date limite de consommation</label>
+                                        <div class="input-group">
+                                            <input type="date" id="dlcField" class="form-control" />
+                                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                        </div>
+                                        <small class="text-muted">Optionnel - pour les produits périssables</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image du produit -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-image"></i> Image du produit</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Option 1: URL de l'image -->
+                                <div class="mb-3">
+                                    <label asp-for="Image" class="form-label">URL de l'image</label>
+                                    <input asp-for="Image" class="form-control" placeholder="https://exemple.com/image.jpg" />
+                                    <span asp-validation-for="Image" class="text-danger"></span>
+                                    <small class="text-muted">Entrez une URL d'image (JPG, PNG, GIF)</small>
+                                </div>
+
+                                <!-- OU -->
+                                <div class="text-center mb-3">
+                                    <span class="text-muted">OU</span>
+                                </div>
+
+                                <!-- Option 2: Télécharger un fichier -->
+                                <div class="mb-3">
+                                    <label class="form-label">Télécharger une image</label>
+                                    <input type="file" id="ImageFile" class="form-control" accept="image/*" />
+                                    <small class="text-muted">Formats acceptés: JPG, PNG, GIF. Max 2MB</small>
+                                </div>
+
+                                <!-- Prévisualisation -->
+                                <div id="imagePreview" class="text-center mt-3" style="display: none;">
+                                    <p class="mb-2">Aperçu:</p>
+                                    <img id="previewImage" class="img-thumbnail" style="max-height: 200px;" />
+                                    <p class="text-muted mt-2 small" id="imageInfo"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Créer le produit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Calcul automatique du TTC
+        function calculateTTC() {
+            // CHANGED: Using VenteHTString field
+            const venteHT = parseFloat($('#VenteHTString').val().replace(',', '.')) || 0;
+            const tva = parseFloat($('#Tva').val()) || 0;
+            const ttc = venteHT + (venteHT * tva / 100);
+            $('#ttcPreview').val(ttc.toFixed(3));
+        }
+
+        // CHANGED: Listen to VenteHTString instead of VenteHT
+        $('#VenteHTString, #Tva').on('input', calculateTTC);
+        $(document).ready(calculateTTC);
+
+        // Génération code-barres
+        function generateBarcode() {
+            const timestamp = Date.now().toString().slice(-8);
+            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            const barcode = 'PROD-' + timestamp + random;
+            $('#CodeBar').val(barcode);
+        }
+
+        // Prévisualisation image fichier
+        $('#ImageFile').change(function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validation taille
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Le fichier est trop volumineux (max 2MB)');
+                    $(this).val('');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImage').attr('src', e.target.result);
+                    $('#imageInfo').text(`${file.name} (${(file.size / 1024).toFixed(0)} KB)`);
+                    $('#imagePreview').show();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#imagePreview').hide();
+            }
+        });
+
+        // Prévisualisation URL image
+        $('#Image').on('input', function() {
+            const url = $(this).val();
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                $('#previewImage').attr('src', url);
+                $('#imageInfo').text(`Image externe: ${url}`);
+                $('#imagePreview').show();
+            } else if (!url) {
+                $('#imagePreview').hide();
+            }
+        });
+
+        // DLC - date minimale aujourd'hui
+        $(document).ready(function() {
+            const today = new Date().toISOString().split('T')[0];
+            $('#dlcField').attr('min', today);
+        });
+
+        // Auto-format decimal input (replace comma with period)
+        $('#VenteHTString').on('blur', function() {
+            let value = $(this).val();
+            value = value.replace(',', '.');
+            $(this).val(value);
+        });
+    </script>
+
+    <style>
+        .required:after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+    </style>
+}

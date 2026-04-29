@@ -1,0 +1,95 @@
+﻿@model IEnumerable<onlineShop.DTOs.CommandeDTO>
+@{
+    ViewData["Title"] = "Gestion des Commandes";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-shopping-cart"></i> Gestion des Commandes</h1>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form asp-action="Commandes" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Filtrer par statut</label>
+                    <select name="statut" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tous les statuts</option>
+                        <option value="en cours" selected="@(ViewBag.StatutFiltre == "en cours")">En cours</option>
+                        <option value="validée" selected="@(ViewBag.StatutFiltre == "validée")">Validée</option>
+                        <option value="livrée" selected="@(ViewBag.StatutFiltre == "livrée")">Livrée</option>
+                        <option value="annulée" selected="@(ViewBag.StatutFiltre == "annulée")">Annulée</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des commandes -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Commande</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Montant TTC</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cmd in Model)
+                        {
+                            <tr>
+                                <td><strong>#@cmd.Idcmd</strong></td>
+                                <td>@cmd.NomClient</td>
+                                <td>@cmd.DateCmd.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@cmd.TotalTTC?.ToString("F2") DT</td>
+                                <td>
+                                    <form asp-action="ChangerStatutCommande" method="post" class="d-inline">
+                                        <input type="hidden" name="idCommande" value="@cmd.Idcmd" />
+                                        <select name="nouveauStatut" class="form-select form-select-sm"
+                                                onchange="this.form.submit()" style="width: auto;">
+                                            <option value="en cours" selected="@(cmd.Statut == "en cours")">En cours</option>
+                                            <option value="validée" selected="@(cmd.Statut == "validée")">Validée</option>
+                                            <option value="livrée" selected="@(cmd.Statut == "livrée")">Livrée</option>
+                                            <option value="annulée" selected="@(cmd.Statut == "annulée")">Annulée</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                    <!-- Bouton Supprimer à la place de Détails -->
+                                    <form asp-action="SupprimerCommande" method="post" class="d-inline"
+                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer la commande #@cmd.Idcmd ? Cette action est irréversible.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@cmd.Idcmd" />
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+
+                                    @if (!cmd.AFacture)
+                                    {
+                                        <form asp-action="CreateFacture" method="post" class="d-inline">
+                                            <input type="hidden" name="idCommande" value="@cmd.Idcmd" />
+                                            <button type="submit" class="btn btn-sm btn-success" title="Créer facture">
+                                                <i class="fas fa-file-invoice"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

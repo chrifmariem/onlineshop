@@ -1,0 +1,239 @@
+﻿@model onlineShop.DTOs.CreateFactureDto
+@{
+    ViewData["Title"] = "Créer une facture";
+}
+
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Créer une facture</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-file-invoice-dollar"></i> Nouvelle Facture</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateFacture" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Sélection Commande -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Sélectionner une commande</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required">Numéro de commande</label>
+                                        <select asp-for="Idcmd" class="form-select" id="commandeSelect">
+                                            <option value="">-- Choisir une commande --</option>
+                                            @if (ViewBag.CommandesEnAttente != null)
+                                            {
+                                                foreach (var cmd in ViewBag.CommandesEnAttente)
+                                                {
+                                                    <option value="@cmd.Idcmd" data-client="@cmd.NomClient" data-montant="@cmd.TotalTTC">
+                                                        Commande #@cmd.Idcmd - @cmd.NomClient (@cmd.TotalTTC?.ToString("F2") DT)
+                                                    </option>
+                                                }
+                                            }
+                                        </select>
+                                        <span asp-validation-for="Idcmd" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Informations commande:</h6>
+                                                <p id="infoClient" class="mb-1">Client: <span class="text-muted">-</span></p>
+                                                <p id="infoMontant" class="mb-0">Montant: <span class="text-muted">-</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Détails Facture -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Détails de la facture</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Numéro de facture</label>
+                                        <input type="text" class="form-control" value="@ViewBag.NextNumeroFacture" readonly />
+                                        <small class="text-muted">Généré automatiquement</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date de facturation</label>
+                                        <input type="text" class="form-control" value="@DateTime.Now.ToString("dd/MM/yyyy")" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="ModePaiement" class="form-label required">Mode de paiement</label>
+                                        <select asp-for="ModePaiement" class="form-select">
+                                            <option value="">-- Sélectionner --</option>
+                                            <option value="Espèces">Espèces</option>
+                                            <option value="Carte bancaire">Carte bancaire</option>
+                                            <option value="Virement">Virement</option>
+                                            <option value="Chèque">Chèque</option>
+                                            <option value="Paiement en ligne">Paiement en ligne</option>
+                                        </select>
+                                        <span asp-validation-for="ModePaiement" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="DateEcheance" class="form-label">Date d'échéance</label>
+                                        <input asp-for="DateEcheance" type="date" class="form-control"
+                                               min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                        <span asp-validation-for="DateEcheance" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">Notes additionnelles</label>
+                                    <textarea asp-for="Notes" class="form-control" rows="3"
+                                              placeholder="Informations supplémentaires..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Résumé et validation -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-calculator"></i> Récapitulatif</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total HT</label>
+                                            <div class="input-group">
+                                                <input type="text" id="totalHT" class="form-control" readonly />
+                                                <span class="input-group-text">DT</span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Total TVA</label>
+                                            <div class="input-group">
+                                                <input type="text" id="totalTVA" class="form-control" readonly />
+                                                <span class="input-group-text">DT</span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Total TTC</label>
+                                            <div class="input-group">
+                                                <input type="text" id="totalTTC" class="form-control" readonly />
+                                                <span class="input-group-text">DT</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-info-circle"></i> Informations</h6>
+                                            <p class="mb-0 small">
+                                                Cette facture sera générée pour la commande sélectionnée.
+                                                Vous pourrez ensuite la télécharger en PDF ou l'envoyer par email.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour au dashboard
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Créer la facture
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Mise à jour des infos commande
+            $('#commandeSelect').change(function() {
+                const selectedOption = $(this).find('option:selected');
+                const client = selectedOption.data('client') || '-';
+                const montant = selectedOption.data('montant') || '0.00';
+
+                $('#infoClient span').text(client);
+                $('#infoMontant span').text(montant + ' DT');
+            });
+
+            // Chargement des détails de commande
+            $('#commandeSelect').change(async function() {
+                const commandeId = $(this).val();
+                if (commandeId) {
+                    await loadCommandeDetails(commandeId);
+                }
+            });
+        });
+
+        // Chargement des détails de commande
+        async function loadCommandeDetails(commandeId) {
+            try {
+                const response = await fetch(`/Admin/GetCommandeDetails/${commandeId}`);
+                if (!response.ok) throw new Error('Erreur de chargement');
+
+                const data = await response.json();
+                updateTotals(data.totalHT, data.totalTVA, data.totalTTC);
+            } catch (error) {
+                console.error('Erreur:', error);
+                resetTotals();
+            }
+        }
+
+        // Mise à jour des totaux
+        function updateTotals(ht, tva, ttc) {
+            $('#totalHT').val(ht ? ht.toFixed(3) : '0.000');
+            $('#totalTVA').val(tva ? tva.toFixed(3) : '0.000');
+            $('#totalTTC').val(ttc ? ttc.toFixed(3) : '0.000');
+        }
+
+        // Réinitialiser les totaux
+        function resetTotals() {
+            $('#totalHT').val('0.000');
+            $('#totalTVA').val('0.000');
+            $('#totalTTC').val('0.000');
+        }
+    </script>
+
+    <style>
+        .required:after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
+}
